@@ -12,9 +12,7 @@ $ git clone https://github.com/TakHemlata/SSL_Anti-spoofing.git
 $ conda create -n SSL_Spoofing python=3.7
 $ conda activate SSL_Spoofing
 $ pip install torch==1.8.1+cu111 torchvision==0.9.1+cu111 torchaudio==0.8.1 -f https://download.pytorch.org/whl/torch_stable.html
-$ cd fairseq-a54021305d6b3c4c5959ac9395135f63202db8f1
-(This fairseq folder can also be downloaded from https://github.com/pytorch/fairseq/tree/a54021305d6b3c4c5959ac9395135f63202db8f1)
-$ pip install --editable ./
+$ pip install git+https://github.com/pytorch/fairseq.git@a54021305d6b3c4c5959ac9395135f63202db8f1
 $ pip install -r requirements.txt
 ```
 
@@ -40,13 +38,13 @@ Download the XLSR models from [here](https://github.com/pytorch/fairseq/tree/mai
 ### Training LA
 To train the model run:
 ```
-CUDA_VISIBLE_DEVICES=0 main_SSL_LA.py --track=LA --lr=0.000001 --batch_size=14 --loss=WCE  
+CUDA_VISIBLE_DEVICES=0 python main_SSL_LA_2019.py --track=LA --lr=0.000001 --batch_size=4 --num_epochs=75 --loss=WCE 
 ```
 ### Testing LA and DF
 
 To evaluate your own model on LA and DF evaluation dataset:
 ```
-CUDA_VISIBLE_DEVICES=0 python main_SSL_LA.py --track=LA --is_eval --eval --model_path='/path/to/your/best_SSL_model_LA.pth' --eval_output='eval_CM_scores_file_SSL_LA.txt'
+CUDA_VISIBLE_DEVICES=0 python main_SSL_LA_2019.py --track=LA --is_eval --eval --model_path='models/model_LA_WCE_15_4_1e-06/epoch_14.pth' --eval_output='score_343datasetx2speakerx2.txt'
 
 CUDA_VISIBLE_DEVICES=0 python main_SSL_DF.py --track=DF --is_eval --eval --model_path='/path/to/your/best_SSL_model_LA.pth' --eval_output='eval_CM_scores_file_SSL_DF.txt'
 ```
@@ -56,9 +54,9 @@ We also provide a pre-trained models. To use it you can run:
 Pre-trained SSL antispoofing models are available for LA and DF [here](https://drive.google.com/drive/folders/1c4ywztEVlYVijfwbGLl9OEa1SNtFKppB?usp=sharing)
 
 ```
-CUDA_VISIBLE_DEVICES=0 python main_SSL_LA.py --track=LA --is_eval --eval --model_path='/path/to/Pre_trained_models/best_SSL_model_LA.pth' --eval_output='eval_pre_trained_model_CM_scores_file_SSL_LA.txt'
+python main_SSL_LA.py --track=LA --is_eval --eval --model_path='/path/to/Pre_trained_models/best_SSL_model_LA.pth' --eval_output='eval_pre_trained_model_CM_scores_file_SSL_LA.txt'
 
-CUDA_VISIBLE_DEVICES=0 python main_SSL_DF.py --track=DF --is_eval --eval --model_path='/path/to/Pre_trained_models/best_SSL_model_DF.pth' --eval_output='eval_pre_trained_model_CM_scores_file_SSL_DF.txt'
+python main_SSL_DF.py --track=DF --is_eval --eval --model_path='/path/to/Pre_trained_models/best_SSL_model_DF.pth' --eval_output='eval_pre_trained_model_CM_scores_file_SSL_DF.txt'
 ```
 ## Results using pre-trained model:
 EER: 0.82%, min t-DCF: 0.2066  on ASVspoof 2021 LA track.
@@ -85,4 +83,11 @@ If you use this code in your research please use the following citation:
   year={2022}
 }
 ```
+
+python main_SSL_LA_2019_tanpa-sa.py --track=LA --lr=0.000001 --batch_size=4 --num_epochs=100 --loss=WCE --algo=3 --comment=ssl-sa3
+python main_SSL_LA_2019_tanpa-sa.py --track=LA --is_eval --eval --models_folder='models/model_LA_WCE_100_4_1e-06_ssl-da1/' --eval_output='score_indo/ssl-da1'
+
+eval mandiri la py itu dari score hasil per model langsung jadi nilai eer, yang dimodifikasi hanya menghitung eer nya saja tanpa tdcf yang awalnya dari evaluate 2019 la py yang dimodifkasi menyesuaikan struktur 2019 yang awalnya dari evaluate 2021 la py
+
+eval pefolder nilai score per folder yang berisi model nanti disatukan menjadi excel, yang perkembangan dari eval mandiri la py
 
