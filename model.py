@@ -193,42 +193,36 @@ class HtrgGraphAttentionLayer(nn.Module):
         x1  :(#bs, #node, #dim)
         x2  :(#bs, #node, #dim)
         '''
-        #print('x1',x1.shape)
-        #print('x2',x2.shape)
+
         num_type1 = x1.size(1)
         num_type2 = x2.size(1)
-        #print('num_type1',num_type1)
-        #print('num_type2',num_type2)
+
         x1 = self.proj_type1(x1)
-        #print('proj_type1',x1.shape)
         x2 = self.proj_type2(x2)
-        #print('proj_type2',x2.shape)
+
         x = torch.cat([x1, x2], dim=1)
-        #print('Concat x1 and x2',x.shape)
         
         if master is None:
             master = torch.mean(x, dim=1, keepdim=True)
-            #print('master',master.shape)
+
         # apply input dropout
         x = self.input_drop(x)
 
         # derive attention map
         att_map = self._derive_att_map(x, num_type1, num_type2)
-        #print('master',master.shape)
+
         # directional edge for master node
         master = self._update_master(x, master)
-        #print('master',master.shape)
+
         # projection
         x = self._project(x, att_map)
-        #print('proj x',x.shape)
+
         # apply batch norm
         x = self._apply_BN(x)
         x = self.act(x)
 
         x1 = x.narrow(1, 0, num_type1)
-        #print('x1',x1.shape)
         x2 = x.narrow(1, num_type1, num_type2)
-        #print('x2',x2.shape)
         return x1, x2, master
 
     def _update_master(self, x, master):
@@ -401,7 +395,9 @@ class Residual_block(nn.Module):
 
         else:
             self.downsample = False
-        
+
+        # ! Di aasist ada tambahan variable
+        # self.mp = nn.MaxPool2d((1, 3))
 
     def forward(self, x):
         identity = x
@@ -425,6 +421,7 @@ class Residual_block(nn.Module):
             identity = self.conv_downsample(identity)
 
         out += identity
+        # ! digunakan dalam aasist
         #out = self.mp(out)
         return out
 
@@ -517,9 +514,10 @@ class Model(nn.Module):
 
         # RawNet2-based encoder
         x = self.encoder(x)
+        # ! Di aasist tidak ada
         x = self.first_bn1(x)
         x = self.selu(x)
-        
+        # ! -------------------
         w = self.attention(x)
         
         #------------SA for spectral feature-------------#
