@@ -77,12 +77,11 @@ class Dataset_ASVspoof2019_train(Dataset):
     def __getitem__(self, index):
 
         utt_id = self.list_IDs[index]
-        X, fs = librosa.load(self.base_dir + utt_id + ".wav", sr=16000)
+        # X, fs = librosa.load(self.base_dir + utt_id + ".wav", sr=16000)
+        X, fs = librosa.load(self.base_dir + utt_id + ".wav", sr=None)
+        if fs != 16000:
+            X = librosa.resample(X, orig_sr=fs, target_sr=16000)
         Y = process_Rawboost_feature(X, fs, self.args, self.algo)
-        # X, fs = librosa.load(self.base_dir + utt_id + ".wav", sr=None)
-        # if fs != 16000:
-        #     X = librosa.resample(X, orig_sr=fs, target_sr=16000)
-        # Y = process_Rawboost_feature(X, 16000, self.args, self.algo)
         X_pad = pad(Y, self.cut)
         x_inp = Tensor(X_pad)
         target = self.labels[utt_id]
@@ -104,10 +103,10 @@ class Dataset_ASVspoof2021_eval(Dataset):
     def __getitem__(self, index):
 
         utt_id = self.list_IDs[index]
-        X, fs = librosa.load(self.base_dir + utt_id + ".wav", sr=16000)
-        # X, fs = librosa.load(self.base_dir + utt_id + ".wav", sr=None)  # Load with original sample rate
-        # if fs != 16000:
-        #     X = librosa.resample(X, orig_sr=fs, target_sr=16000)
+        # X, fs = librosa.load(self.base_dir + utt_id + ".wav", sr=16000)
+        X, fs = librosa.load(self.base_dir + utt_id + ".wav", sr=None)  # Load with original sample rate
+        if fs != 16000:
+            X = librosa.resample(X, orig_sr=fs, target_sr=16000)
         X_pad = pad(X, self.cut)
         x_inp = Tensor(X_pad)
         return x_inp, utt_id
