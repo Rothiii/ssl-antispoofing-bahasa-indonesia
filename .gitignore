@@ -129,6 +129,7 @@ dmypy.json
 .pyre/
 
 # Additional from Rafid
+nottestyet_main_LA_testing_tensorboard_and_simplify.py
 xlsr2_300m.pt
 xlsr2_300m.ptZone.Identifier
 models

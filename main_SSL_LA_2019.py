@@ -6,6 +6,7 @@ import torch
 from torch import nn
 from torch import Tensor
 from torch.utils.data import DataLoader
+import re
 
 # import yaml
 from data_utils_SSL import (
@@ -21,6 +22,20 @@ import pandas as pd
 
 __author__ = "Hemlata Tak"
 __email__ = "tak@eurecom.fr"
+
+def get_latest_epoch(models_folder):
+    model_files = [f for f in os.listdir(models_folder) if f.endswith(".pth")]
+    if not model_files:
+        return 0, None
+
+    # Extract epoch numbers from filenames
+    epochs = [int(re.search(r'epoch_(\d+)', f).group(1)) for f in model_files if re.search(r'epoch_(\d+)', f)]
+    if not epochs:
+        return 0, None
+
+    latest_epoch = max(epochs)
+    latest_model_path = os.path.join(models_folder, f"epoch_{latest_epoch}.pth")
+    return latest_epoch, latest_model_path
 
 
 def evaluate_accuracy(dev_loader, model, device):
@@ -111,7 +126,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--database_path",
         type=str,
-        default="E:/Data Kuliah/Tugas Akhir (Skripsi)/Dataset DIY/LA/",
+        default="E:/Data Kuliah/TugasAkhir(Skripsi)/Dataset DIY/LA/",
         help="Change this to user's full directory address of LA database (ASVspoof2019- for training & development (used as validation), ASVspoof2021 for evaluation scores). We assume that all three ASVspoof 2019 LA train, LA dev and ASVspoof2021 LA eval data folders are in the same database_path directory.",
     )
     """
@@ -125,7 +140,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--protocols_path",
         type=str,
-        default="E:/Data Kuliah/Tugas Akhir (Skripsi)/Dataset DIY/LA/",
+        default="E:/Data Kuliah/TugasAkhir(Skripsi)/Dataset DIY/LA/",
         help="Change with path to user's LA database protocols directory adisdress",
     )
     """
@@ -161,6 +176,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--track", type=str, default="LA", choices=["LA", "PA", "DF"], help="LA/PA/DF"
     )
+    # TODO menggunakan file eval/formattrainsepertimodel
     parser.add_argument(
         "--eval_output",
         type=str,
@@ -312,7 +328,6 @@ if __name__ == "__main__":
     # database
     prefix = "ASVspoof2019_{}".format(track)
     prefix_2019 = "ASVspoof2019.{}".format(track)
-    prefix_2021 = "ASVspoof2021.{}".format(track)
 
     # define model saving path
     model_tag = "model_{}_{}_{}_{}_{}_{}".format(
@@ -332,27 +347,26 @@ if __name__ == "__main__":
 
     model = Model(args, device)
     nb_params = sum([param.view(-1).size()[0] for param in model.parameters()])
+    # ! Berbeda dengan main ssl df
     model = model.to(device)
-    print("nb_params:", nb_params)
+    # ! --------------------------
+    print("Number of parameters in the model: ", nb_params)
 
     # set Adam optimizer
     optimizer = torch.optim.Adam(
         model.parameters(), lr=args.lr, weight_decay=args.weight_decay
     )
-    start_epoch = 0
-    if args.model_path:
-        checkpoint = torch.load(args.model_path, map_location=device)
-        if 'model_state_dict' in checkpoint and 'optimizer_state_dict' in checkpoint and 'epoch' in checkpoint:
-            model.load_state_dict(checkpoint['model_state_dict'])
-            optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-            start_epoch = checkpoint['epoch'] + 1
-            print("Model loaded : {}".format(args.model_path))
-        else:
-            print("Checkpoint does not contain expected keys. Starting from scratch.")
+    start_epoch, latest_model_path = get_latest_epoch(model_save_path)
+    if latest_model_path:
+        checkpoint = torch.load(latest_model_path, map_location=device)
+        model.load_state_dict(checkpoint)
+        start_epoch += 1
+        print("Model loaded from epoch {}: {}".format(start_epoch - 1, latest_model_path))
+    else:
+        print("No checkpoint found. Starting from scratch.")
 
 
     # evaluation
-    # #base is 2021 but I change to 2019
     if args.eval:
         model_files = [f for f in os.listdir(args.models_folder) if f.endswith(".pth")]
 
@@ -462,7 +476,7 @@ if __name__ == "__main__":
         algo=args.algo,
     )
     dev_loader = DataLoader(
-        dev_set, batch_size=args.batch_size, num_workers=8, shuffle=False
+        dev_set, batch_size=args.batch_size, num_workers=4, shuffle=False
     )
     del dev_set, d_label_dev
     print("Data loaded")
@@ -472,10 +486,9 @@ if __name__ == "__main__":
     writer = SummaryWriter("logs/{}".format(model_tag))
 
     best_val_loss = float('inf')
-    recent_checkpoints = []
 
     for epoch in range(start_epoch, num_epochs):
-        print("\nTrainig will Start for epoch: ", epoch)
+        print("\nTraining will Start for epoch: ", epoch)
         running_loss = train_epoch(train_loader, model, args.lr, optimizer, device)
         val_loss = evaluate_accuracy(dev_loader, model, device)
 
@@ -488,32 +501,4 @@ if __name__ == "__main__":
 
         # Simpan model
         checkpoint_path = os.path.join(model_save_path, "epoch_{}.pth".format(epoch))
-        torch.save(
-            {
-                'epoch': epoch,
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'loss': running_loss,
-            },
-            checkpoint_path,
-        )
-
-        # Update recent checkpoints
-        recent_checkpoints.append(checkpoint_path)
-        if len(recent_checkpoints) > 2:
-            # Remove the oldest checkpoint
-            os.remove(recent_checkpoints.pop(0))
-
-        # Save the best model
-        if val_loss < best_val_loss:
-            best_val_loss = val_loss
-            best_model_path = os.path.join(model_save_path, "best.pth")
-            torch.save(
-                {
-                    'epoch': epoch,
-                    'model_state_dict': model.state_dict(),
-                    'optimizer_state_dict': optimizer.state_dict(),
-                    'loss': running_loss,
-                },
-                best_model_path,
-            )
+        torch.save( model.state_dict(), checkpoint_path )
