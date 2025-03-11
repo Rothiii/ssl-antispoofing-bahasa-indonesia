@@ -7,6 +7,7 @@ from torch import nn
 from torch import Tensor
 from torch.utils.data import DataLoader
 import re
+from eval_mandiri_LA import eval_to_score_file
 
 # import yaml
 from data_utils_SSL import (
@@ -24,6 +25,12 @@ __author__ = "Hemlata Tak"
 __email__ = "tak@eurecom.fr"
 
 def get_latest_epoch(models_folder):
+    models_folder = os.path.abspath(models_folder)+"/"  # Ubah jadi absolute path
+
+    if not os.path.exists(models_folder):
+        print(f"Error: Directory {models_folder} does not exist!")
+        return 0, None
+    
     model_files = [f for f in os.listdir(models_folder) if f.endswith(".pth")]
     if not model_files:
         return 0, None
@@ -126,7 +133,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--database_path",
         type=str,
-        default="E:/Data Kuliah/TugasAkhir(Skripsi)/Dataset DIY/LA/",
+        default="/media/dl-1/Second Drive/Experiment/Rafid/Dataset/LA/LA/",
         help="Change this to user's full directory address of LA database (ASVspoof2019- for training & development (used as validation), ASVspoof2021 for evaluation scores). We assume that all three ASVspoof 2019 LA train, LA dev and ASVspoof2021 LA eval data folders are in the same database_path directory.",
     )
     """
@@ -140,7 +147,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--protocols_path",
         type=str,
-        default="E:/Data Kuliah/TugasAkhir(Skripsi)/Dataset DIY/LA/",
+        default="/media/dl-1/Second Drive/Experiment/Rafid/Dataset/LA/LA/",
         help="Change with path to user's LA database protocols directory adisdress",
     )
     """
@@ -158,7 +165,7 @@ if __name__ == "__main__":
         help="Folder yang berisi model-model yang sudah dilatih",
     )
 
-    parser.add_argument("--batch_size", type=int, default=14)
+    parser.add_argument("--batch_size", type=int, default=32)
     parser.add_argument("--num_epochs", type=int, default=100)
     parser.add_argument("--lr", type=float, default=0.000001)
     parser.add_argument("--weight_decay", type=float, default=0.0001)
@@ -330,8 +337,8 @@ if __name__ == "__main__":
     prefix_2019 = "ASVspoof2019.{}".format(track)
 
     # define model saving path
-    model_tag = "model_{}_{}_{}_{}_{}_{}".format(
-        track, args.loss, args.num_epochs, args.batch_size, args.lr, args.algo
+    model_tag = "model_{}_{}_1000_{}_{}_{}".format(
+        track, args.loss, args.batch_size, args.lr, args.algo
     )
     if args.comment:
         model_tag = model_tag + "_{}".format(args.comment)
@@ -360,14 +367,18 @@ if __name__ == "__main__":
     if latest_model_path:
         checkpoint = torch.load(latest_model_path, map_location=device)
         model.load_state_dict(checkpoint)
-        start_epoch += 1
         print("Model loaded from epoch {}: {}".format(start_epoch - 1, latest_model_path))
     else:
-        print("No checkpoint found. Starting from scratch.")
+        if args.model_path:
+            start_epoch, _ = get_latest_epoch(os.path.dirname(args.model_path))
+            model.load_state_dict(torch.load(args.model_path, map_location=device))
+            print('Model loaded from: {}'.format(args.model_path))
+        else:
+            print("No checkpoint found. Starting from scratch.")
 
 
     # evaluation
-    if args.eval:
+    if args.eval and args.models_folder:
         model_files = [f for f in os.listdir(args.models_folder) if f.endswith(".pth")]
 
         if not model_files:
@@ -419,6 +430,14 @@ if __name__ == "__main__":
                 )
         sys.exit(0)
 
+    if args.eval and args.model_path:
+        file_eval = genSpoof_list( dir_meta =  os.path.join(args.protocols_path+'ASVspoof2019_{}_cm_protocols/{}.cm.eval.trl.txt'.format(track,prefix_2019)),is_train=False,is_eval=True)
+        print('no. of eval trials',len(file_eval))
+        eval_set=Dataset_ASVspoof2021_eval(list_IDs = file_eval,base_dir = os.path.join(args.database_path+'ASVspoof2019_{}_eval/'.format(args.track)))
+        produce_evaluation_file(eval_set, model, device, args.eval_output)
+        eval_to_score_file(args.eval_output, "/media/dl-1/Second Drive/Experiment/Rafid/Dataset/LA/LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.eval.trl.txt")
+        sys.exit(0)
+
     # define train dataloader
     d_label_trn, file_train = genSpoof_list(
         dir_meta=os.path.join(
@@ -445,7 +464,7 @@ if __name__ == "__main__":
     train_loader = DataLoader(
         train_set,
         batch_size=args.batch_size,
-        num_workers=4,
+        num_workers=8,
         shuffle=True,
         drop_last=True,
     )
@@ -476,7 +495,7 @@ if __name__ == "__main__":
         algo=args.algo,
     )
     dev_loader = DataLoader(
-        dev_set, batch_size=args.batch_size, num_workers=4, shuffle=False
+        dev_set, batch_size=args.batch_size, num_workers=8, shuffle=False
     )
     del dev_set, d_label_dev
     print("Data loaded")
@@ -488,17 +507,19 @@ if __name__ == "__main__":
     best_val_loss = float('inf')
 
     for epoch in range(start_epoch, num_epochs):
-        print("\nTraining will Start for epoch: ", epoch)
+        count = epoch+1
+        print("\nTraining will Start for epoch: ", count)
         running_loss = train_epoch(train_loader, model, args.lr, optimizer, device)
         val_loss = evaluate_accuracy(dev_loader, model, device)
 
         # Log ke tensorboard
-        writer.add_scalar("val_loss", val_loss, epoch)
-        writer.add_scalar("loss", running_loss, epoch)
+        writer.add_scalar("val_loss", val_loss, count)
+        writer.add_scalar("loss", running_loss, count)
 
         # Print loss pada setiap epoch
-        print("\n epoch[{}] - Running Loss[{}] - Val Loss[{}] ".format(epoch, running_loss, val_loss))
+        print("epoch[{}] - Running Loss[{}] - Val Loss[{}] ".format(count, running_loss, val_loss))
 
         # Simpan model
-        checkpoint_path = os.path.join(model_save_path, "epoch_{}.pth".format(epoch))
-        torch.save( model.state_dict(), checkpoint_path )
+        if count%100==0:
+            checkpoint_path = os.path.join(model_save_path, "epoch_{}.pth".format(count))
+            torch.save( model.state_dict(), checkpoint_path )
