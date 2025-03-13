@@ -493,8 +493,8 @@ if __name__ == "__main__":
         val_loss = evaluate_accuracy(dev_loader, model, device)
 
         # Log ke tensorboard
-        writer.add_scalar("val_loss", val_loss, epoch)
-        writer.add_scalar("loss", running_loss, epoch)
+        writer.add_scalar("Eval loss", val_loss, epoch)
+        writer.add_scalar("Running loss", running_loss, epoch)
 
         # Print loss pada setiap epoch
         print("\n epoch[{}] - Running Loss[{}] - Val Loss[{}] ".format(epoch, running_loss, val_loss))
