@@ -15,7 +15,7 @@ $: python eval_mandiri_LA.py eval_CM_scores_file_SSL_LA.txt ~/Dataset/LA/ eval
 import sys, os.path
 import numpy as np
 import pandas
-import eval_metric_LA as em
+import eval_metric as em
 
 if len(sys.argv) != 4:
     print("CHECK: invalid input arguments. Please read the instruction below:")
@@ -36,10 +36,8 @@ def performance(cm_scores, invert=False):
     """
     Compute EER for given CM scores.
     """
-    # bona_cm = cm_scores[cm_scores[4] == "bonafide"]["1_x"].values
-    # spoof_cm = cm_scores[cm_scores[4] == "spoof"]["1_x"].values
-    bona_cm = cm_scores[cm_scores[4] == "Bonafide"]["1_x"].values
-    spoof_cm = cm_scores[cm_scores[4] == "Spoofing"]["1_x"].values
+    bona_cm = cm_scores[cm_scores[4] == "bonafide"]["1_x"].values
+    spoof_cm = cm_scores[cm_scores[4] == "spoof"]["1_x"].values
     if invert == False:
         eer_cm = em.compute_eer(bona_cm, spoof_cm)[0]
     else:
@@ -66,13 +64,11 @@ def eval_to_score_file(score_file, cm_key_file):
 
     cm_scores = submission_scores.merge(cm_data, left_on=0, right_on=1, how="inner")
     eer_cm = performance(cm_scores)
-    print(eer_cm)
     out_data = "eer: %.2f\n" % (100 * eer_cm)
     print(out_data, end="")
 
     # Check for inverted scores
     eer_cm2 = performance(cm_scores, invert=True)
-    print(eer_cm2)
 
     if eer_cm2 < eer_cm:
         print(

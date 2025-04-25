@@ -15,7 +15,7 @@ $: python evaluate.py score.txt ./keys eval
 import sys, os.path
 import numpy as np
 import pandas
-import eval_metric_LA as em
+import eval_metric as em
 from glob import glob
 
 if len(sys.argv) != 4:

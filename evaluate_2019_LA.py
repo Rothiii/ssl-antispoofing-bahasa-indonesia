@@ -15,7 +15,7 @@ $: python evaluate.py eval_CM_scores_file_SSL_LA.txt ~/Dataset/ASVspoof29019_LA/
 import sys, os.path
 import numpy as np
 import pandas
-import eval_metric_LA as em
+import eval_metric as em
 from glob import glob
 
 if len(sys.argv) != 4:
