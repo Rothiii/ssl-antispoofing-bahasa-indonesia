@@ -22,8 +22,8 @@ $ pip install -r requirements.txt
 ```
 
 ---
-
-## 📂 Dataset Configuration
+## Configuration
+### 📂 Dataset
 
 Update your dataset path accordingly before training or evaluation in main_SSL_LA.py.
 
@@ -56,15 +56,23 @@ Dataset links:
 
 ---
 
+### Pre-trained wav2vec 2.0 XLSR (300M)
+
+Put wav2vec 2.0 model file to inside this repository.
+
+- **[wav2vec 2.0 XLSR (300M) Model](https://github.com/pytorch/fairseq/tree/main/examples/wav2vec/xlsr)**
+
+---
+
 ## 🎯 Training & Evaluation
 
-### 🔥 Training (LA Track)
+### 🔥 Training
 
 ```bash
-python main_SSL_LA_2019.py --track=LA --lr=0.000001 --batch_size=4 --num_epochs=100 --loss=WCE
+python main_SSL_LA_2019.py --track=LA --lr=0.000001 --batch_size=4 --num_epochs=100
 ```
 
-### 📊 Testing (LA & DF Tracks)
+### 📊 Testing
 
 ```bash
 python main_SSL_LA_2019.py --track=LA --is_eval --eval --model_path='models/model_LA_WCE_15_4_1e-06/epoch_14.pth' --eval_output='eval_score.txt'
@@ -76,13 +84,6 @@ python main_SSL_DF.py --track=DF --is_eval --eval --model_path='/path/to/your/be
 
 ## 📈 Results (Pre-trained Model)
 
-- **EER: 2.85%** on ASVspoof 2021 DF track.
-
-Compute the EER(%) using the ASVspoof 2019 dataset:
-```bash
-python evaluate_2019_LA.py Score_LA.txt ./keys eval
-```
-
 Compute the EER(%) using the evaluation dataset:
 ```bash
 python evaluate_2021_LA.py Score_LA.txt ./keys eval
@@ -93,20 +94,25 @@ python evaluate_2021_DF.py Score_DF.txt ./keys eval
 
 ## 📌 Experimental Notes
 
+This if you want to train without using SA according to main paper experiment
 ```bash
 python main_SSL_LA_2019_tanpa-sa.py --track=LA --lr=0.000001 --batch_size=4 --num_epochs=100 --loss=WCE --algo=3 --comment=ssl-sa3
+```
+
+This if you want to eval model that you have been train before and eval one by one the model (perfolder)
+```bash
 python main_SSL_LA_2019_tanpa-sa.py --track=LA --is_eval --eval --models_folder='models/model_LA_WCE_100_4_1e-06_ssl-da1/' --eval_output='score_indo/ssl-da1'
 ```
 
-- **`eval_mandiri_LA.py`**: Computes EER directly per model without t-DCF, adapted from `evaluate_2019_LA.py`.
-- **`eval_pefolder.py`**: Aggregates per-folder model scores into an Excel file, an extension of `eval_mandiri_LA.py`.
+- **`check_eer.py`**: Computes EER directly per model without t-DCF, adapted from `evaluate_2021_LA.py`.
+- **`check_eer_pefolder.py`**: Aggregates per-folder model scores into an Excel file, an extension of `check_eer.py`.
 
 ---
 
 ## 📬 Contact
 
 For any inquiries regarding this repository, please contact:
-- **Rafid Al Khairy**: 11211068[at]student[dot]itk[dot]ac[dot]id
+- **Rafid Al Khairy**: 11211068@student.itk.ac.id
 
 ---
 
