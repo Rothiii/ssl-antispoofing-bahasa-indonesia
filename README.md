@@ -3,7 +3,8 @@
 This repository contains our implementation of the paper published in the Speaker Odyssey 2022 workshop, **"Automatic speaker verification spoofing and deepfake detection using wav2vec 2.0 and data augmentation"**. This work produced state-of-the-art results on the challenging ASVspoof 2021 LA and DF datasets.
 
 📄 **[Paper Link](https://arxiv.org/abs/2202.12233)**  
-📂 **[Main Repository](https://github.com/TakHemlata/SSL_Anti-spoofing.git)**
+📂 **[Main Repository SSL](https://github.com/TakHemlata/SSL_Anti-spoofing.git)**
+📂 **[Main Repository AASIST](https://github.com/clovaai/aasist)**
 
 ---
 
