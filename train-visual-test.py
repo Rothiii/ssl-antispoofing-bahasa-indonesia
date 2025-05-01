@@ -6,6 +6,7 @@ from torch import nn
 from torch import Tensor
 from torch.utils.data import DataLoader
 import re
+from check_eer import eval_to_score_file
 
 # import yaml
 from data_utils_SSL import (
