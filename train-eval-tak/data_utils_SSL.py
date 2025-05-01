@@ -55,7 +55,7 @@ def pad(x, max_len=64600):
 			
 
 class Dataset_ASVspoof2019_train(Dataset):
-	def __init__(self,args,list_IDs, labels, base_dir,algo):
+    def __init__(self,args,list_IDs, labels, base_dir,algo):
             '''self.list_IDs	: list of strings (each string: utt key),
                self.labels      : dictionary (key: utt key, value: label integer)'''
                
@@ -66,11 +66,11 @@ class Dataset_ASVspoof2019_train(Dataset):
             self.args=args
             self.cut=64600 # take ~4 sec audio (64600 samples)
 
-	def __len__(self):
+    def __len__(self):
            return len(self.list_IDs)
 
 
-	def __getitem__(self, index):
+    def __getitem__(self, index):
             
             utt_id = self.list_IDs[index]
             X,fs = librosa.load(self.base_dir+'flac/'+utt_id+'.flac', sr=16000) 
@@ -83,7 +83,7 @@ class Dataset_ASVspoof2019_train(Dataset):
             
             
 class Dataset_ASVspoof2021_eval(Dataset):
-	def __init__(self, list_IDs, base_dir):
+    def __init__(self, list_IDs, base_dir):
             '''self.list_IDs	: list of strings (each string: utt key),
                '''
                
@@ -91,11 +91,11 @@ class Dataset_ASVspoof2021_eval(Dataset):
             self.base_dir = base_dir
             self.cut=64600 # take ~4 sec audio (64600 samples)
 
-	def __len__(self):
+    def __len__(self):
             return len(self.list_IDs)
 
 
-	def __getitem__(self, index):
+    def __getitem__(self, index):
             
             utt_id = self.list_IDs[index]
             X, fs = librosa.load(self.base_dir+'flac/'+utt_id+'.flac', sr=16000)
