@@ -65,33 +65,47 @@ def evaluate_accuracy(dev_loader, model, device):
 
     return val_loss
 
+import matplotlib.pyplot as plt
+
+def visualize_features(features, utt_id, step):
+    plt.figure(figsize=(10, 4))
+    plt.imshow(features.cpu().numpy()[0], aspect='auto', origin='lower')
+    plt.colorbar()
+    plt.title(f"Spectral Features for {utt_id[0]} (Step {step})")
+    plt.xlabel("Time")
+    plt.ylabel("Frequency")
+    plt.show()
 
 def produce_evaluation_file(dataset, model, device, save_path):
     data_loader = DataLoader(dataset, batch_size=10, shuffle=False, drop_last=False)
     model.eval()
 
-    fname_list = []
-    score_list = []
-
+    print("Starting evaluation...")
     with torch.no_grad():  # Menggunakan no_grad untuk menghemat memori
-        for batch_x, utt_id in data_loader:
-            fname_list = []
-            score_list = []
-            batch_size = batch_x.size(0)
+        for i, (batch_x, utt_id) in enumerate(data_loader):
+            print(f"\nStep {i + 1}: Processing batch with {len(utt_id)} samples")
+            # Visualisasi fitur spektral
+            visualize_features(batch_x, utt_id, i + 1)
+            # Fitur suara masuk
             batch_x = batch_x.to(device)
+            print(f"Input features shape: {batch_x.shape}")
 
+            # Prediksi model
             batch_out = model(batch_x)
+            print(f"Model output shape: {batch_out.shape}")
+            print(f"Model raw output: {batch_out}")
 
+            # Ekstraksi skor untuk suara palsu/asli
             batch_score = (batch_out[:, 1]).data.cpu().numpy().ravel()
-            fname_list.extend(utt_id)
-            score_list.extend(batch_score.tolist())
+            print(f"Scores for batch: {batch_score}")
 
+            # Simpan hasil ke file
             with open(save_path, "a+") as fh:
-                for f, cm in zip(fname_list, score_list):
-                    fh.write("{} {}\n".format(f, cm))
-            fh.close()
-    print("Scores saved to {}".format(save_path))
+                for f, cm in zip(utt_id, batch_score):
+                    fh.write(f"{f} {cm}\n")
+            print(f"Batch {i + 1} scores saved to {save_path}")
 
+    print("Evaluation completed. Scores saved to:", save_path)
 
 def train_epoch(train_loader, model, lr, optim, device):
     running_loss = 0
