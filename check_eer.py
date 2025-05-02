@@ -64,7 +64,7 @@ def eval_to_score_file(score_file, cm_key_file):
 
     cm_scores = submission_scores.merge(cm_data, left_on=0, right_on=1, how="inner")
     eer_cm = performance(cm_scores)
-    out_data = "eer: %.2f\n" % (100 * eer_cm)
+    out_data = "eer: %.2f%%\n" % (100 * eer_cm)
     print(out_data, end="")
 
     # Check for inverted scores
