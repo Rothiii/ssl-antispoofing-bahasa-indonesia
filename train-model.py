@@ -6,7 +6,6 @@ from torch import nn
 from torch import Tensor
 from torch.utils.data import DataLoader
 import re
-from check_eer import eval_to_score_file
 
 # import yaml
 from data_utils_SSL import (
@@ -149,8 +148,9 @@ if __name__ == "__main__":
     model_save_path = os.path.join("models", model_tag)
 
     # set model save directory
-    if not os.path.exists(model_save_path):
-        os.mkdir(model_save_path)
+    if not (args.is_eval and args.eval):
+        if not os.path.exists(model_save_path):
+            os.mkdir(model_save_path)
 
     # GPU device
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -240,7 +240,6 @@ if __name__ == "__main__":
         print('no. of eval trials',len(file_eval))
         eval_set=Dataset_ASVspoof2021_eval(list_IDs = file_eval,base_dir = os.path.join(args.database_path+'ASVspoof2019_{}_eval/'.format(args.track)))
         produce_evaluation_file(eval_set, model, device, args.eval_output)
-        eval_to_score_file(args.eval_output, "/media/dl-1/Second Drive/Experiment/Rafid/Dataset/LA/LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.eval.trl.txt")
         sys.exit(0)
 
     # define train dataloader
