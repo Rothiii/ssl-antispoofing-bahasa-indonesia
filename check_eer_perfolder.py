@@ -6,18 +6,16 @@ import re
 
 '''
 python eval_mandiri_LA_perfolder.py "/path/to/score_folder" "/path/to/cm_protocols"
-python eval_mandiri_LA_perfolder.py "/path/to/score_folder" "/path/to/cm_protocols" "/path/to/output_folder"
-python eval_mandiri_LA_perfolder.py /media/dl-1/Second\ Drive/Experiment/Rafid/SSL_Anti-spoofing/score_indo/[folder] /media/dl-1/Second\ Drive/Experiment/Rafid/Dataset/LA/ASVspoof_LA_cm_protocols eval
+python eval_mandiri_LA_perfolder.py scores/[folder] dataset/LA/ASVspoof_LA_cm_protocols
 '''
 
-if len(sys.argv) != 4:
+if len(sys.argv) != 3:
     print("CHECK: invalid input arguments. Please read the instruction below:")
     print(__doc__)
     exit(1)
 
 submit_file = sys.argv[1]  # Path to the folder containing files
 truth_dir = sys.argv[2]    # Path to the truth folder
-phase = sys.argv[3]
 
 # Convert relative paths to absolute paths
 submit_file = os.path.abspath(submit_file)
@@ -86,11 +84,11 @@ def evaluate_and_save_to_excel(model_files, cm_key_file, output_folder):
             continue
 
         print(f"Evaluating {model_file}...")
-        eer, eer2 = eval_to_score_file(model_path, cm_key_file)
-        eer_results.append([model_file, eer, eer2])
+        eer, _ = eval_to_score_file(model_path, cm_key_file)
+        eer_results.append([model_file, eer])
 
     if eer_results:
-        df = pd.DataFrame(eer_results, columns=["Epoch", "EER", "EER2"])
+        df = pd.DataFrame(eer_results, columns=["Epoch", "EER"])
         os.makedirs(output_folder, exist_ok=True)
         output_file = os.path.join(output_folder, "eer_results.xlsx")
         df.to_excel(output_file, index=False)
@@ -105,10 +103,6 @@ if __name__ == "__main__":
 
     if not os.path.isdir(truth_dir):
         print(f"Directory {truth_dir} does not exist.")
-        exit(1)
-
-    if phase not in ["progress", "eval", "hidden_track"]:
-        print("Phase must be either progress, eval, or hidden_track")
         exit(1)
 
     print(sys.argv)
