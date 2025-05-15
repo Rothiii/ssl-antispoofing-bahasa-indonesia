@@ -13,9 +13,9 @@ def get_args():
     """
     % database_path/
     %   |- LA
-    %      |- ASVspoof2021_LA_eval/flac
-    %      |- ASVspoof2019_LA_train/flac
-    %      |- ASVspoof2019_LA_dev/flac
+    %      |- ASVspoof2021_LA_eval/
+    %      |- ASVspoof2019_LA_train/
+    %      |- ASVspoof2019_LA_dev/
     """
 
     parser.add_argument(
@@ -39,8 +39,8 @@ def get_args():
         help="Folder yang berisi model-model yang sudah dilatih",
     )
 
-    parser.add_argument("--batch_size", type=int, default=14)
-    parser.add_argument("--num_epochs", type=int, default=100)
+    parser.add_argument("--batch_size", type=int, default=10)
+    parser.add_argument("--num_epochs", type=int, default=20)
     parser.add_argument("--lr", type=float, default=0.000001)
     parser.add_argument("--weight_decay", type=float, default=0.0001)
     parser.add_argument("--loss", type=str, default="weighted_CCE")
