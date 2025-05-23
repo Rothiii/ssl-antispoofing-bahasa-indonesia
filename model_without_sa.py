@@ -431,6 +431,7 @@ class Residual_block(nn.Module):
 
 class Model(nn.Module):
     def __init__(self, args,device):
+        print("Model: without self attention")
         super().__init__()
         self.device = device
         
