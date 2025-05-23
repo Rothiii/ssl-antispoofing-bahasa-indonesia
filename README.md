@@ -29,20 +29,20 @@ pip install -r requirements.txt
 Update your dataset path accordingly before training or evaluation in main_SSL_LA.py.
 
 ```python
-parser.add_argument('--database_path', type=str, default='/your/path/to/data/ASVspoof_database/LA/',
+parser.add_argument('--database_path', type=str, default='dataset/LA/',
     help='Change this to user\'s full directory address of LA database (ASVspoof2019 for training & development, ASVspoof2021 for evaluation).')
 '''
-% database_path/
+% dataset/
 %   |- LA
-%      |- ASVspoof2021_LA_eval/flac
-%      |- ASVspoof2019_LA_train/flac
-%      |- ASVspoof2019_LA_dev/flac
+%      |- ASVspoof2021_LA_eval/
+%      |- ASVspoof2019_LA_train/
+%      |- ASVspoof2019_LA_dev/
 '''
 
-parser.add_argument('--protocols_path', type=str, default='database/',
+parser.add_argument('--protocols_path', type=str, default='dataset/LA',
     help='Change with path to user\'s LA database protocols directory address')
 '''
-% protocols_path/
+% dataset/LA
 %   |- ASVspoof_LA_cm_protocols
 %      |- ASVspoof2021.LA.cm.eval.trl.txt
 %      |- ASVspoof2019.LA.cm.dev.trl.txt 
@@ -70,26 +70,17 @@ Put wav2vec 2.0 model file to inside this repository.
 ### 🔥 Training
 
 ```bash
-python main_SSL_LA_2019.py --track=LA --lr=0.000001 --batch_size=4 --num_epochs=100
+python train-model.py --sa --comment=your-comment
 ```
 
-### 📊 Testing
+### 📊 Evaluation
 
 ```bash
-python main_SSL_LA_2019.py --track=LA --is_eval --eval --model_path='models/model_LA_WCE_15_4_1e-06/epoch_14.pth' --eval_output='eval_score.txt'
+python train-model.py --sa--is_eval --eval --model_path='models/your-folder/your-model.pth' --eval_output='scores/your-result.txt'
 
-python main_SSL_DF.py --track=DF --is_eval --eval --model_path='/path/to/your/best_SSL_model_LA.pth' --eval_output='eval_CM_scores_file_SSL_DF.txt'
+python train-model.py --sa --is_eval --eval --models_folder='models/[your models]/' --eval_output='score_indo/[folder output]'
 ```
 
----
-
-## 📈 Results (Pre-trained Model)
-
-Compute the EER(%) using the evaluation dataset:
-```bash
-python evaluate_2021_LA.py Score_LA.txt ./keys eval
-python evaluate_2021_DF.py Score_DF.txt ./keys eval
-```
 
 ---
 
@@ -97,16 +88,30 @@ python evaluate_2021_DF.py Score_DF.txt ./keys eval
 
 This if you want to train without using SA according to main paper experiment
 ```bash
-python main_SSL_LA_2019_tanpa-sa.py --track=LA --lr=0.000001 --batch_size=4 --num_epochs=100 --loss=WCE --algo=3 --comment=ssl-sa3
+python train-model.py --comment=your-comment
 ```
 
-This if you want to eval model that you have been train before and eval one by one the model (perfolder)
+Eval specified model 
 ```bash
-python main_SSL_LA_2019_tanpa-sa.py --track=LA --is_eval --eval --models_folder='models/model_LA_WCE_100_4_1e-06_ssl-da1/' --eval_output='score_indo/ssl-da1'
+python train-model.py --is_eval --eval --model_path='models/your-folder/your-model.pth' --eval_output='scores/your-result.txt'
 ```
 
+If you want to eval model that you have been train before and eval one by one the model (perfolder)
+```bash
+python train-model.py --is_eval --eval --models_folder='models/[your models]/' --eval_output='score_indo/[folder output]'
+```
+
+---
+
+## 📈 Results
 - **`check_eer.py`**: Computes EER directly per model without t-DCF, adapted from `evaluate_2021_LA.py`.
 - **`check_eer_pefolder.py`**: Aggregates per-folder model scores into an Excel file, an extension of `check_eer.py`.
+
+Compute the EER(%) using the evaluation dataset:
+```bash
+python check_eer.py your_score.txt dataset/LA
+python check_eer_perfolder.py /path/to/score_folder /path/to/cm_protocols
+```
 
 ---
 
@@ -131,31 +136,28 @@ If you use this code in your research, please cite:
 ```
 
 ```bibtex
-@inproceedings{tak2022automatic,
-  title={Implementasi SSL dan EER pada suara Bahasa Indonesia},
+@inproceedings{
+  title={KLASIFIKASI AUDIO ANTI-SPOOFING BAHASA INDONESIA MENGGUNAKAN AASIST DAN WAV2VEC 2.0 DENGAN AUGMENTASI DATA},
   author={Al Khairy, Rafid},
-  year={2024}
+  year={2025}
 }
 ```
 
 ---
 
 **📌 [Your Notes & Future Improvements]**  
-*(Tambahkan catatan eksperimen, hasil uji coba, atau ide pengembangan di sini...)*
 Ubah path nya jadi fix, gaperlu ubah ubah lagi
 buat preprocessing data supaya gampang
 sesuaikan path di eval, hapus kata kata 2019 prefix atau apapun itu
-
-pip install tensorboard
-tensorboard --logdir=logs
+ubah samplerate buat ngambil jadi 8 detik suara
 ---
 
 ## 📝 Add Your Own Notes
-📌 **Additional Experiments**: ................................................
+📌 **Additional Experiments**: 
+- Sample Rate change from 64600 to 130000
+- Compare Learning Rate 0.00001, 0.00005, 0.0001, 0.0005, 0.001, 0.005
+- Compare all Data Augmentation algoritm from 0 to 8 
 
-📌 **New Training Configurations**: ................................................
-
-📌 **Custom Dataset Links**: ................................................
-
-📌 **Future Improvements**: ................................................
-
+📌 **Custom Dataset Links**:
+Self Record and Generate TTS by Resemble.ai voice cloning with each speaker
+- **[Self Record](https://datashare.is.ed.ac.uk/handle/10283/3336)**
