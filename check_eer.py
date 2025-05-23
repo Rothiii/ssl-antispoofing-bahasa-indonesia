@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 
 """
-Script to compute EER for ASVspoof2021 LA without ASV.
+Script to compute EER.
 Usage:
-$: python PATH_TO_SCORE_FILE PATH_TO_GROUNDTRUTH_DIR phase
+$: python check_eer.py PATH_TO_SCORE_FILE PATH_TO_GROUNDTRUTH_DIR
 
  -PATH_TO_SCORE_FILE: path to the score file 
  -PATH_TO_GROUNDTRUTH_DIR: path to the directory that has the CM protocol.
- -phase: either progress, eval, or hidden_track
 Example:
-$: python eval_mandiri_LA.py eval_CM_scores_file_SSL_LA.txt ~/Dataset/LA/ eval
+$: python check_eer.py eval_CM_scores_file_SSL_LA.txt /Dataset/LA/
 """
 
 import sys, os.path
@@ -17,18 +16,17 @@ import numpy as np
 import pandas
 import eval_metric as em
 
-if len(sys.argv) != 4:
+if len(sys.argv) != 3:
     print("CHECK: invalid input arguments. Please read the instruction below:")
     print(__doc__)
     exit(1)
 
 submit_file = sys.argv[1]
 truth_dir = sys.argv[2]
-phase = sys.argv[3]
 
 # Paths to CM protocol files
 cm_key_file = os.path.join(
-    truth_dir, "ASVspoof2019.LA.cm.eval.trl.txt"
+    truth_dir, "ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.eval.trl.txt"
 )
 
 
@@ -92,10 +90,6 @@ if __name__ == "__main__":
 
     if not os.path.isdir(truth_dir):
         print("%s doesn't exist" % (truth_dir))
-        exit(1)
-
-    if phase != "progress" and phase != "eval" and phase != "hidden_track":
-        print("phase must be either progress, eval, or hidden_track")
         exit(1)
 
     _ = eval_to_score_file(submit_file, cm_key_file)
