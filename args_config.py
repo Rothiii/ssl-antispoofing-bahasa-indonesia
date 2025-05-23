@@ -54,6 +54,7 @@ def get_args():
         "--comment", type=str, default=None, help="Comment to describe the saved model"
     )
     # Auxiliary arguments
+    parser.add_argument("--sa", action="store_true", default=False, help="use Self Attention")
     parser.add_argument(
         "--track", type=str, default="LA", choices=["LA", "PA", "DF"], help="LA/PA/DF"
     )
