@@ -6,6 +6,7 @@ from torch import nn
 from torch import Tensor
 from torch.utils.data import DataLoader
 import re
+import importlib
 
 # import yaml
 from data_utils_SSL import (
@@ -13,7 +14,6 @@ from data_utils_SSL import (
     Dataset_ASVspoof2019_train,
     Dataset_ASVspoof2021_eval,
 )
-from model import Model
 from tensorboardX import SummaryWriter
 from core_scripts.startup_config import set_random_seed
 import pandas as pd
@@ -130,6 +130,13 @@ if __name__ == "__main__":
     # Import arguments from args_config.py
     args = get_args()
 
+    if args.sa:
+        model_module = importlib.import_module("model")
+    else:
+        model_module = importlib.import_module("model_without_sa")
+
+    Model = getattr(model_module, "Model")
+
     # make experiment reproducible
     set_random_seed(args.seed, args)
 
@@ -145,6 +152,10 @@ if __name__ == "__main__":
     )
     if args.comment:
         model_tag = model_tag + "_{}".format(args.comment)
+    model_save_path = os.path.join("models", model_tag)
+
+    if args.sa:
+        model_tag = model_tag + "_SA"    
     model_save_path = os.path.join("models", model_tag)
 
     # set model save directory
@@ -172,7 +183,7 @@ if __name__ == "__main__":
         checkpoint = torch.load(latest_model_path, map_location=device)
         model.load_state_dict(checkpoint)\
 
-        print("Model loaded from epoch {}: {}".format(start_epoch - 1, latest_model_path))
+        print("Model loaded from epoch {}: {}".format(start_epoch, latest_model_path))
     else:
         if args.model_path:
             start_epoch, _ = get_latest_epoch(os.path.dirname(args.model_path))
