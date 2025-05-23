@@ -145,13 +145,6 @@ If you use this code in your research, please cite:
 
 ---
 
-**📌 [Your Notes & Future Improvements]**  
-Ubah path nya jadi fix, gaperlu ubah ubah lagi
-buat preprocessing data supaya gampang
-sesuaikan path di eval, hapus kata kata 2019 prefix atau apapun itu
-ubah samplerate buat ngambil jadi 8 detik suara
----
-
 ## 📝 Add Your Own Notes
 📌 **Additional Experiments**: 
 - Sample Rate change from 64600 to 130000
