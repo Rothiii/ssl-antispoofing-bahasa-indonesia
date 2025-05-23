@@ -138,4 +138,4 @@ fairseq-a54021305d6b3c4c5959ac9395135f63202db8f1
 scores/
 dataset/
 database/
-eer_visualization/
+eer_visualizations/
