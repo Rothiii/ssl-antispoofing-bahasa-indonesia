@@ -1,6 +1,7 @@
 import argparse
 import os
 
+
 def get_args():
     parser = argparse.ArgumentParser(description="ASVspoof2021 baseline system")
     # Dataset
@@ -54,7 +55,9 @@ def get_args():
         "--comment", type=str, default=None, help="Comment to describe the saved model"
     )
     # Auxiliary arguments
-    parser.add_argument("--sa", action="store_true", default=False, help="use Self Attention")
+    parser.add_argument(
+        "--sa", action="store_true", default=False, help="use Self Attention"
+    )
     parser.add_argument(
         "--track", type=str, default="LA", choices=["LA", "PA", "DF"], help="LA/PA/DF"
     )
@@ -197,5 +200,5 @@ def get_args():
 
     if not os.path.exists("models"):
         os.mkdir("models")
-    
+
     return parser.parse_args()
