@@ -374,11 +374,10 @@ def calculate_and_visualize_eer(merged_data, output_dir="./eer_visualizations"):
         "TN": tn,
     }
 
-    # Save results to CSV
-    pd.DataFrame([results]).to_csv(
-        os.path.join(output_dir, "eer_results.csv"), index=False
-    )
-    print(f"Numerical results saved to {os.path.join(output_dir, 'eer_results.csv')}")
+    output_file = os.path.join(output_dir, "eval_result.xlsx")
+    pd.DataFrame.from_dict(results, orient="index", columns=["Value"]).to_excel(output_file)
+
+    print(f"Vertical Excel saved to {output_file}")
 
     return results
 
