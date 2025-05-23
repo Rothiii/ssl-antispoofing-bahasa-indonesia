@@ -49,7 +49,7 @@ def genSpoof_list(dir_meta, is_train=False, is_eval=False):
         return d_meta, file_list
 
 
-def pad(x, max_len=64600):
+def pad(x, max_len=130000):
     x_len = x.shape[0]
     if x_len >= max_len:
         return x[:max_len]
@@ -69,7 +69,7 @@ class Dataset_ASVspoof2019_train(Dataset):
         self.base_dir = base_dir
         self.algo = algo
         self.args = args
-        self.cut = 64600  # take ~4 sec audio (64600 samples)
+        self.cut = 130000  # take ~8 sec audio (130000 samples)
 
     def __len__(self):
         return len(self.list_IDs)
@@ -95,7 +95,7 @@ class Dataset_ASVspoof2021_eval(Dataset):
 
         self.list_IDs = list_IDs
         self.base_dir = base_dir
-        self.cut = 64600  # take ~4 sec audio (64600 samples)
+        self.cut = 130000  # take ~8 sec audio (130000 samples)
 
     def __len__(self):
         return len(self.list_IDs)
