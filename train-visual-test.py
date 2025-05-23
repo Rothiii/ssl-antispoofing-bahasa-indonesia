@@ -71,17 +71,34 @@ def evaluate_accuracy(dev_loader, model, device):
 
 import matplotlib.pyplot as plt
 
+# def visualize_features(features, utt_id, step):
+#     """Visualize spectral features of the input audio"""
+#     plt.figure(figsize=(10, 4))
+#     plt.imshow(features.cpu().numpy()[0], aspect='auto', origin='lower')
+#     plt.colorbar()
+#     plt.title(f"Spectral Features for {utt_id[0]} (Step {step})")
+#     plt.xlabel("Time")
+#     plt.ylabel("Frequency")
+#     plt.savefig(f"debug_visualizations/spectral_features_{step}.png")
+#     plt.close()
+#     print(f"Spectral features visualization saved to debug_visualizations/spectral_features_{step}.png")
+
 def visualize_features(features, utt_id, step):
-    """Visualize spectral features of the input audio"""
+    print(f"Feature shape: {features[0].shape}")  # atau batch_x.shape
+    feature = features[0]
+    if feature.ndim == 3:  # Misal (channel, freq, time)
+        feature = feature[0]  # ambil channel pertama
+    elif feature.ndim == 4:  # (batch, channel, freq, time), ini aneh kalau udah index 0
+        feature = feature[0][0]
     plt.figure(figsize=(10, 4))
-    plt.imshow(features.cpu().numpy()[0], aspect='auto', origin='lower')
+    plt.imshow(feature.cpu().numpy(), aspect='auto', origin='lower')
     plt.colorbar()
     plt.title(f"Spectral Features for {utt_id[0]} (Step {step})")
     plt.xlabel("Time")
     plt.ylabel("Frequency")
-    plt.savefig(f"debug_visualizations/spectral_features_{step}.png")
-    plt.close()
-    print(f"Spectral features visualization saved to debug_visualizations/spectral_features_{step}.png")
+    plt.tight_layout()
+    plt.show()
+
 
 def plot_confusion_matrix(y_true, y_pred, threshold=0):
     """
