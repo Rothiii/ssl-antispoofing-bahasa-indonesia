@@ -26,7 +26,7 @@ pip install -r requirements.txt
 ## Configuration
 ### 📂 Dataset
 
-Update your dataset path accordingly before training or evaluation in main_SSL_LA.py.
+Update your dataset path accordingly before training or evaluation in args_config.py.
 
 ```python
 parser.add_argument('--database_path', type=str, default='dataset/LA/',
