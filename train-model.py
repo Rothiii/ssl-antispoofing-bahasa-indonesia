@@ -68,7 +68,7 @@ def calculate_dev_eer(dev_loader, model, device):
     # Calculate EER
     if len(scores_bonafide) > 0 and len(scores_spoof) > 0:
         eer = em.compute_eer(np.array(scores_bonafide), np.array(scores_spoof))[0]
-        return eer
+        return eer * 100.0  # Convert to percentage
     else:
         print("Warning: No bonafide or spoof samples found")
         return 100.0
