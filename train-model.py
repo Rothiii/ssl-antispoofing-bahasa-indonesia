@@ -7,6 +7,7 @@ from torch import Tensor
 from torch.utils.data import DataLoader
 import re
 import importlib
+import pandas as pd
 
 # import yaml
 from data_utils_SSL import (
@@ -16,9 +17,8 @@ from data_utils_SSL import (
 )
 from tensorboardX import SummaryWriter
 from core_scripts.startup_config import set_random_seed
-import pandas as pd
 from args_config import get_args
-
+import eval_metric as em
 
 __author__ = "Hemlata Tak"
 __email__ = "tak@eurecom.fr"
@@ -43,6 +43,35 @@ def get_latest_epoch(models_folder):
     latest_model_path = os.path.join(models_folder, f"epoch_{latest_epoch}.pth")
     return latest_epoch, latest_model_path
 
+def calculate_dev_eer(dev_loader, model, device):
+    """Calculate EER on development set"""
+    model.eval()
+    
+    scores_bonafide = []
+    scores_spoof = []
+    
+    with torch.no_grad():
+        for batch_x, batch_y in dev_loader:
+            batch_x = batch_x.to(device)
+            batch_y = batch_y.view(-1).type(torch.int64).to(device)
+            
+            batch_out = model(batch_x)
+            batch_score = batch_out[:, 1].data.cpu().numpy()
+            
+            # Separate bonafide (label=1) and spoof (label=0) scores
+            bonafide_mask = batch_y.cpu().numpy() == 1
+            spoof_mask = batch_y.cpu().numpy() == 0
+            
+            scores_bonafide.extend(batch_score[bonafide_mask])
+            scores_spoof.extend(batch_score[spoof_mask])
+    
+    # Calculate EER
+    if len(scores_bonafide) > 0 and len(scores_spoof) > 0:
+        eer = em.compute_eer(np.array(scores_bonafide), np.array(scores_spoof))[0]
+        return eer
+    else:
+        print("Warning: No bonafide or spoof samples found")
+        return 100.0
 
 def evaluate_accuracy(dev_loader, model, device):
     val_loss = 0.0
@@ -65,6 +94,11 @@ def evaluate_accuracy(dev_loader, model, device):
 
     return val_loss
 
+def save_metrics_to_excel(metrics_data, save_path):
+    """Save training metrics to Excel file"""
+    df = pd.DataFrame(metrics_data)
+    df.to_excel(save_path, index=False)
+    print(f"Metrics saved to {save_path}")
 
 def produce_evaluation_file(dataset, model, device, save_path):
     data_loader = DataLoader(dataset, batch_size=10, shuffle=False, drop_last=False)
@@ -91,7 +125,6 @@ def produce_evaluation_file(dataset, model, device, save_path):
                     fh.write("{} {}\n".format(f, cm))
             fh.close()
     print("Scores saved to {}".format(save_path))
-
 
 def train_epoch(train_loader, model, lr, optim, device):
     running_loss = 0
@@ -124,7 +157,6 @@ def train_epoch(train_loader, model, lr, optim, device):
     running_loss /= num_total
 
     return running_loss
-
 
 if __name__ == "__main__":
     # Import arguments from args_config.py
@@ -162,16 +194,16 @@ if __name__ == "__main__":
     )
     if args.comment:
         model_tag = model_tag + "_{}".format(args.comment)
-    model_save_path = os.path.join("models", model_tag)
-
+    
     if args.sa:
         model_tag = model_tag + "_SA"    
+    
     model_save_path = os.path.join("models", model_tag)
 
     # set model save directory
     if not (args.is_eval and args.eval):
         if not os.path.exists(model_save_path):
-            os.mkdir(model_save_path)
+            os.makedirs(model_save_path, exist_ok=True)
 
     # GPU device
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -179,20 +211,18 @@ if __name__ == "__main__":
 
     model = Model(args, device)
     nb_params = sum([param.view(-1).size()[0] for param in model.parameters()])
-    # ! Berbeda dengan main ssl df
     model = model.to(device)
-    # ! --------------------------
     print("Number of parameters in the model: ", nb_params)
 
     # set Adam optimizer
     optimizer = torch.optim.Adam(
         model.parameters(), lr=args.lr, weight_decay=args.weight_decay
     )
+    
     start_epoch, latest_model_path = get_latest_epoch(model_save_path)
     if latest_model_path:
         checkpoint = torch.load(latest_model_path, map_location=device)
-        model.load_state_dict(checkpoint)\
-
+        model.load_state_dict(checkpoint)
         print("Model loaded from epoch {}: {}".format(start_epoch, latest_model_path))
     else:
         if args.model_path:
@@ -201,7 +231,6 @@ if __name__ == "__main__":
             print('Model loaded from: {}'.format(args.model_path))
         else:
             print("No checkpoint found. Starting from scratch.")
-
 
     # evaluation
     if args.eval and args.models_folder:
@@ -215,16 +244,13 @@ if __name__ == "__main__":
             model_path = os.path.join(args.models_folder, model_file)
             print(f"Evaluating model: {model_path}")
 
-            # Membuat model baru dan memuat state dict-nya
             model = Model(args, device)
             model.load_state_dict(torch.load(model_path, map_location=device))
             model = model.to(device)
 
-            # Evaluasi hanya jika --eval diaktifkan
             if args.eval:
-                torch.cuda.empty_cache()  # Kosongkan cache CUDA sebelum memulai evaluasi
+                torch.cuda.empty_cache()
 
-                # Membaca file evaluasi
                 file_eval = genSpoof_list(
                     dir_meta=os.path.join(
                         args.protocols_path,
@@ -244,11 +270,9 @@ if __name__ == "__main__":
                     ),
                 )
 
-                # Menentukan path untuk file output evaluasi
                 output_filename = f"score_{model_file.replace('.pth', '.txt')}"
                 eval_output_path = os.path.join(args.eval_output, output_filename)
 
-                # Melakukan evaluasi dan menyimpan hasil
                 produce_evaluation_file(eval_set, model, device, eval_output_path)
 
                 print(
@@ -297,7 +321,6 @@ if __name__ == "__main__":
     del train_set, d_label_trn
 
     # define validation dataloader
-
     d_label_dev, file_dev = genSpoof_list(
         dir_meta=os.path.join(
             args.protocols_path
@@ -329,21 +352,102 @@ if __name__ == "__main__":
     num_epochs = args.num_epochs
     writer = SummaryWriter("logs/{}".format(model_tag))
 
-    best_val_loss = float('inf')
+    # Initialize tracking variables
+    best_dev_eer = 100.0
+    best_epoch = 0
+    metrics_data = []
+
+    # Create metric log file
+    metric_log_path = os.path.join(model_save_path, "metric_log.txt")
+    f_log = open(metric_log_path, "a")
+    f_log.write("=" * 50 + "\n")
+    f_log.write(f"Training started for model: {model_tag}\n")
+    f_log.write("=" * 50 + "\n")
+
+    print(f"Total Epochs: {num_epochs}")
+    print("=" * 50)
 
     for epoch in range(start_epoch, num_epochs):
-        print("\nTraining will Start for epoch: ", epoch)
+        print(f"\nEpoch {epoch}/{num_epochs-1}")
+        print("-" * 30)
+        
+        # Training
+        print("Training...")
         running_loss = train_epoch(train_loader, model, args.lr, optimizer, device)
+        
+        # Validation
+        print("Validating...")
         val_loss = evaluate_accuracy(dev_loader, model, device)
+        
+        # Calculate development EER
+        print("Calculating EER...")
+        dev_eer = calculate_dev_eer(dev_loader, model, device)
 
-        # Log ke tensorboard
-        writer.add_scalar("Eval loss", val_loss, epoch)
-        writer.add_scalar("Running loss", running_loss, epoch)
+        # Log to tensorboard
+        writer.add_scalar("Train/Loss", running_loss, epoch)
+        writer.add_scalar("Val/Loss", val_loss, epoch)
+        writer.add_scalar("Val/EER", dev_eer, epoch)
+        writer.add_scalar("Val/Best_EER", best_dev_eer, epoch)
 
-        # Print loss pada setiap epoch
-        print("\n epoch[{}] - Running Loss[{}] - Val Loss[{}] ".format(epoch, running_loss, val_loss))
+        # Print metrics
+        print(f"Train Loss: {running_loss:.5f}")
+        print(f"Val Loss: {val_loss:.5f}")
+        print(f"Dev EER: {dev_eer:.3f}%")
 
-        # Simpan model
-        if epoch % 1 == 0:
-            checkpoint_path = os.path.join(model_save_path, "epoch_{}.pth".format(epoch))
-            torch.save( model.state_dict(), checkpoint_path )
+        # Save metrics to list for Excel export
+        metrics_data.append({
+            'Epoch': epoch,
+            'Train_Loss': running_loss,
+            'Val_Loss': val_loss,
+            'Dev_EER': dev_eer,
+            'Best_EER': best_dev_eer
+        })
+
+        # Save model for current epoch
+        checkpoint_path = os.path.join(model_save_path, f"epoch_{epoch}.pth")
+        torch.save(model.state_dict(), checkpoint_path)
+        print(f"Model saved: epoch_{epoch}.pth")
+
+        # Check if this is the best model
+        if dev_eer < best_dev_eer:
+            best_dev_eer = dev_eer
+            best_epoch = epoch
+            
+            # Save best model
+            best_model_path = os.path.join(model_save_path, "best.pth")
+            torch.save(model.state_dict(), best_model_path)
+            
+            print(f"🎉 NEW BEST MODEL! EER: {best_dev_eer:.3f}% at epoch {epoch}")
+            
+            # Log to file
+            log_text = f"epoch {epoch:03d}, NEW BEST EER: {best_dev_eer:.4f}%\n"
+            f_log.write(log_text)
+            f_log.flush()
+
+        print(f"Best EER so far: {best_dev_eer:.3f}% (epoch {best_epoch})")
+        print("=" * 50)
+
+    # Save final metrics to Excel
+    excel_path = os.path.join(model_save_path, "training_metrics.xlsx")
+    save_metrics_to_excel(metrics_data, excel_path)
+
+    # Save final summary
+    f_log.write("=" * 50 + "\n")
+    f_log.write("TRAINING COMPLETED\n")
+    f_log.write(f"Best EER: {best_dev_eer:.3f}% at epoch {best_epoch}\n")
+    f_log.write(f"Total epochs: {num_epochs}\n")
+    f_log.write("=" * 50 + "\n")
+    f_log.close()
+
+    # Save final model
+    final_model_path = os.path.join(model_save_path, "final.pth")
+    torch.save(model.state_dict(), final_model_path)
+
+    print("\n" + "=" * 50)
+    print("🏁 TRAINING COMPLETED!")
+    print(f"📊 Best EER: {best_dev_eer:.3f}% (epoch {best_epoch})")
+    print(f"📁 Models saved in: {model_save_path}")
+    print(f"📈 Metrics saved to: {excel_path}")
+    print("=" * 50)
+
+    writer.close()
