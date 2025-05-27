@@ -428,7 +428,7 @@ class Residual_block(nn.Module):
 
 class Model(nn.Module):
     def __init__(self, args,device):
-        print("Model: use self attention")
+        print("Model: wav2vec 2.0 use self attention")
         super().__init__()
         self.device = device
         
@@ -438,7 +438,7 @@ class Model(nn.Module):
         pool_ratios = [0.5, 0.5, 0.5, 0.5]
         temperatures =  [2.0, 2.0, 100.0, 100.0]
 
-
+        # FrontEnd Here
         ####
         # create network wav2vec 2.0
         ####
