@@ -34,7 +34,7 @@ parser.add_argument('--database_path', type=str, default='dataset/LA/',
 '''
 % dataset/
 %   |- LA
-%      |- ASVspoof2021_LA_eval/
+%      |- ASVspoof2019_LA_eval/
 %      |- ASVspoof2019_LA_train/
 %      |- ASVspoof2019_LA_dev/
 '''
@@ -44,7 +44,7 @@ parser.add_argument('--protocols_path', type=str, default='dataset/LA',
 '''
 % dataset/LA
 %   |- ASVspoof_LA_cm_protocols
-%      |- ASVspoof2021.LA.cm.eval.trl.txt
+%      |- ASVspoof2019.LA.cm.eval.trl.txt
 %      |- ASVspoof2019.LA.cm.dev.trl.txt 
 %      |- ASVspoof2019.LA.cm.train.trn.txt
 '''
@@ -69,8 +69,14 @@ Put wav2vec 2.0 model file to inside this repository.
 
 ### 🔥 Training
 
+Train use wav2vec 2.0 (ssl)
 ```bash
-python train-model.py --sa --comment=your-comment
+python train-model.py --model ssl --sa --comment=your-comment
+```
+
+Train use sinclayer
+```bash
+python train-model.py --model sinclayer --sa
 ```
 
 ### 📊 Evaluation
