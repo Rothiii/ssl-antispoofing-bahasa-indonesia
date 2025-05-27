@@ -170,9 +170,9 @@ if __name__ == "__main__":
             model_module = importlib.import_module("sincnet_model_without_sa")
     elif args.model == "ssl":
         if args.sa:
-            model_module = importlib.import_module("model")
+            model_module = importlib.import_module("ssl_model")
         else:
-            model_module = importlib.import_module("model_without_sa")
+            model_module = importlib.import_module("ssl_model_without_sa")
     else:
         # Default fallback or error handling
         raise ValueError(f"Unknown model type: {args.model}. Use 'sinclayer' or 'ssl'")
