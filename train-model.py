@@ -130,10 +130,20 @@ if __name__ == "__main__":
     # Import arguments from args_config.py
     args = get_args()
 
-    if args.sa:
-        model_module = importlib.import_module("model")
+    # Model selection logic based on args.model and args.sa
+    if args.model == "sinclayer":
+        if args.sa:
+            model_module = importlib.import_module("sincnet_model")
+        else:
+            model_module = importlib.import_module("sincnet_model_without_sa")
+    elif args.model == "ssl":
+        if args.sa:
+            model_module = importlib.import_module("model")
+        else:
+            model_module = importlib.import_module("model_without_sa")
     else:
-        model_module = importlib.import_module("model_without_sa")
+        # Default fallback or error handling
+        raise ValueError(f"Unknown model type: {args.model}. Use 'sinclayer' or 'ssl'")
 
     Model = getattr(model_module, "Model")
 

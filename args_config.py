@@ -14,7 +14,7 @@ def get_args():
     """
     % database_path/
     %   |- LA
-    %      |- ASVspoof2021_LA_eval/
+    %      |- ASVspoof2019_LA_eval/
     %      |- ASVspoof2019_LA_train/
     %      |- ASVspoof2019_LA_dev/
     """
@@ -28,7 +28,7 @@ def get_args():
     """
     % protocols_path/
     %   |- ASVspoof_LA_cm_protocols
-    %      |- ASVspoof2021.LA.cm.eval.trl.txt
+    %      |- ASVspoof2019.LA.cm.eval.trl.txt
     %      |- ASVspoof2019.LA.cm.dev.trl.txt 
     %      |- ASVspoof2019.LA.cm.train.trn.txt
     """
@@ -46,6 +46,14 @@ def get_args():
     parser.add_argument("--weight_decay", type=float, default=0.0001)
     parser.add_argument("--loss", type=str, default="weighted_CCE")
     # model
+    parser.add_argument(
+        "--model", 
+        type=str, 
+        default="ssl",
+        choices=["ssl", "sinclayer"],
+        help="Model type: 'ssl' for SSL model or 'sinclayer' for SincNet model"
+    )
+
     parser.add_argument(
         "--seed", type=int, default=1234, help="random seed (default: 1234)"
     )
