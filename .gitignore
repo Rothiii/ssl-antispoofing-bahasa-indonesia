@@ -129,7 +129,7 @@ dmypy.json
 .pyre/
 
 # Additional from Rafid
-nottestyet_main_LA_testing_tensorboard_and_simplify.py
+audio_duration_analysis/
 xlsr2_300m.pt
 xlsr2_300m.ptZone.Identifier
 # Ignore contents but keep directories
