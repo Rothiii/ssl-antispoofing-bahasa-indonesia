@@ -129,10 +129,12 @@ dmypy.json
 .pyre/
 
 # Additional from Rafid
-audio_duration_analysis/
 xlsr2_300m.pt
 xlsr2_300m.ptZone.Identifier
 # Ignore contents but keep directories
+audio_duration_analysis/*
+!audio_duration_analysis/.gitkeep
+
 models/*
 !models/.gitkeep
 
@@ -150,3 +152,6 @@ database/*
 
 eer_visualizations/*
 !eer_visualizations/.gitkeep
+
+data_augmentation_effect/*
+!data_augmentation_effect/.gitkeep

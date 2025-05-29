@@ -8,12 +8,13 @@ conda activate SSL_Spoofing
 echo "Start training model"
 mkdir -p scores/8detikaudio
 
-for i in {0..8}
+for i in 0 1 2 3 4 5 6 7 8
 do
     echo "🚀 Running eval for --algo=$i"
     mkdir -p "scores/8detikaudio/algo${i}"
 
     python train-model.py \
+        --sa \
         --track=LA \
         --is_eval \
         --eval \

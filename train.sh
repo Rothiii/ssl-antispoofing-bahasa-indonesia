@@ -7,7 +7,7 @@ do
     echo "======================================"
     
     # your command to run the training script  
-    python train-model.py --model sinclayer --sa --comment=ssl --algo=$i
+    python train-model.py --model sinclayer --sa --comment=sinclayer --algo=$i
 
     if [ $? -ne 0 ]; then
         echo "❌ Training failed at algo=$i. Stopping."
