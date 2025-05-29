@@ -156,6 +156,7 @@ If you use this code in your research, please cite:
 - Sample Rate change from 64600 to 130000
 - Compare Learning Rate 0.00001, 0.00005, 0.0001, 0.0005, 0.001, 0.005
 - Compare all Data Augmentation algoritm from 0 to 8 
+- sed -i 's/\r$//' *.sh
 
 📌 **Custom Dataset Links**:
 Self Record and Generate TTS by Resemble.ai voice cloning with each speaker
