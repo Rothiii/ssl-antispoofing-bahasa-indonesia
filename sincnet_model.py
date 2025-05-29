@@ -442,8 +442,8 @@ class Residual_block(nn.Module):
         else:
             self.downsample = False
         
-        # ! Di ssl dibawah ini ga ada || jadi di comment
-        # self.mp = nn.MaxPool2d((1, 3))  # self.mp = nn.MaxPool2d((1,4))
+        # ! Di ssl dibawah ini ga ada || jadi di comment || jika tidak dipakai OOM
+        self.mp = nn.MaxPool2d((1, 3))  # self.mp = nn.MaxPool2d((1,4))
 
     def forward(self, x):
         identity = x
@@ -464,8 +464,8 @@ class Residual_block(nn.Module):
             identity = self.conv_downsample(identity)
 
         out += identity
-        # ! di ssl ini ga ada || Jadi di comment
-        # out = self.mp(out)
+        # ! di ssl ini ga ada || Jadi di comment || jika tidak dipakai OOM
+        out = self.mp(out)
         # ! -----
         return out
 
@@ -477,7 +477,7 @@ class Model(nn.Module):
         self.device = device
 
         # AASIST parameters
-        filts = [128, [1, 32], [32, 32], [32, 64], [64, 64]]
+        filts = [70, [1, 32], [32, 32], [32, 64], [64, 64]]
         gat_dims = [64, 32]
         pool_ratios = [0.5, 0.5, 0.5, 0.5]
         temperatures =  [2.0, 2.0, 100.0, 100.0]
